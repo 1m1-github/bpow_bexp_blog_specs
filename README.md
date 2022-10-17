@@ -11,6 +11,7 @@ x = (-1)^{`neg`}\sum_{i=-`radix`}^{L-`radix`} 256^i \cdot b_{L-(i+`radix`)}
 $$
 
 `b` is interpreted as a base 256 number with `radix` and polarity (`neg`) given
+still represents the current interpretion for opcodes like `b+`. choosing the same interpretation should make interoperability for opcodes easier.
 
 `neg` and `radix` are common `uint`
 
