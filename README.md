@@ -17,7 +17,7 @@ this represents the current interpretion for opcodes like `b+`. choosing the sam
 
 ## bpow
 
-bpow neg radix
+bpow negA radixA negB radixB
 
 Stack: ..., A: []byte, B: []byte → ..., C: []byte
 
@@ -35,7 +35,7 @@ A,C follow interpretation above
 
 ## blog
 
-blog neg radix
+blog radix
 
 Stack: ..., A: []byte → ..., C: []byte
 
