@@ -50,7 +50,7 @@ the above is a binary (n-ary with $n=2^m$) representation of fixed point values 
 
 - homogeneity: same representation as other opcodes (`b+` etc.)
 
-- size: if each digit is a byte, then a 256 base is optimal ~ using base 10 wastes a lot of space ~ could interpret a byte as 2 digits in the decimal expansion, which would waste less space, but gets arguably convoluted
+- size: if each digit is a byte, then a 256 base is optimal ~ using base 10 wastes a lot of space ~ could interpret a byte as 2 digits in the decimal expansion, which would waste less space, but gets arguably convoluted ~ on the other hand, []byte has max 4096 length, allowing a large range even in decimal even wasting space using a byte per digit
 
 ### pros decimal
 
