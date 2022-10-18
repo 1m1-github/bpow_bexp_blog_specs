@@ -42,6 +42,25 @@ Stack: ..., A: []byte → ..., C: []byte
 computes $C = ln(A)$  
 A,C follow interpretation above
 
+## decimal vs binary
+
+the above is a binary (n-ary with $n=2^m$) representation of fixed point values ~ an alternative is to use decimal representations  
+
+### pros binary
+
+- homogeneity: same representation as other opcodes (`b+` etc.)
+
+- size: if each digit is a byte, then a 256 base is optimal ~ using base 10 wastes a lot of space ~ could interpret a byte as 2 digits in the decimal expansion, which would waste less space, but gets arguably convoluted
+
+### pros decimal
+
+- famously, 0.1 cannot be represented in binary fixed point finitely ~ this is not the case vice versa, i.e. no finite binary representation has an infinite decimal representation
+
+### question
+
+- if adopting the decimal representation, would it make sense to change the existing opcodes to the same to allow for composition of e.g. $bpow \circ b+ $
+
+
 ## use case
 
 many applications in Finance, Math, Science need these functions at least over the rationals
