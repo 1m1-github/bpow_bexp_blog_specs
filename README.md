@@ -2,16 +2,15 @@
 
 ## general
 
-a []byte `b` combined with the params `neg` and `width` is interpreted as a fixed point as follows:
+a []byte `b` combined with the params `neg` and `width` is interpreted as a fixed point `x` as follows:
 
 let $L = len(b) - 1$
 
-$$
-x^' = (-1)^{`neg`}\sum_{i=0}^{L} 256^i \cdot b_{L-i}
-x = x^' * 10^{-'width'}
-$$
+$$`x`^{'} = (-1)^{`neg`}\sum_{i=0}^{L-1} 256^i \cdot b_{L-i-1}$$
 
-`b` is interpreted as a base 256 number first and the with `width` is applies a shift to the decimal point and `neg` defines its polaity via its parity.    
+$$`x` = `x`^{'} * 10^{-`width`}$$
+
+`b` is interpreted as a base 256 number first and then `width` applies a shift to the decimal point and `neg` defines its polaity via its parity.    
 this represents the current interpretion for opcodes like `b+`. choosing the same interpretation should make interoperability for opcodes easier.
 
 `neg` and `width` are common `uint`
@@ -20,7 +19,7 @@ this represents the current interpretion for opcodes like `b+`. choosing the sam
 
 bpow widthA widthB
 
-Stack: ..., negA: uint, A: []byte, negA: uint, B: []byte → ..., negC: uint, C: []byte
+Stack: ..., negA: uint, A: []byte, negB: uint, B: []byte → ..., negC: uint, C: []byte
 
 computes $C=A^B$  
 A,B,C follow interpretation above
@@ -41,7 +40,7 @@ blog width
 Stack: ..., A: []byte → ..., neg: uint, C: []byte
 
 computes $C = ln(A)$  
-`neg` represents polarity of C
+`neg` represents polarity of C  
 A,C follow interpretation above
 
 
