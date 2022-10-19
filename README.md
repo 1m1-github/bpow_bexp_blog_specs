@@ -2,63 +2,47 @@
 
 ## general
 
-a []byte `b` combined with the params `neg` and `radix` is interpreted as a fixed point as follows:
+a []byte `b` combined with the params `neg` and `width` is interpreted as a fixed point as follows:
 
 let $L = len(b) - 1$
 
 $$
-x = (-1)^{`neg`}\sum_{i=-`radix`}^{L-`radix`} 256^i \cdot b_{L-(i+`radix`)}
+x^' = (-1)^{`neg`}\sum_{i=0}^{L} 256^i \cdot b_{L-i}
+x = x^' * 10^{-'width'}
 $$
 
-`b` is interpreted as a base 256 number with `radix` and polarity (`neg`) given  
+`b` is interpreted as a base 256 number first and the with `width` is applies a shift to the decimal point and `neg` defines its polaity via its parity.    
 this represents the current interpretion for opcodes like `b+`. choosing the same interpretation should make interoperability for opcodes easier.
 
-`neg` and `radix` are common `uint`
+`neg` and `width` are common `uint`
 
 ## bpow
 
-bpow negA radixA negB radixB
+bpow widthA widthB
 
-Stack: ..., A: []byte, B: []byte → ..., C: []byte
+Stack: ..., negA: uint, A: []byte, negA: uint, B: []byte → ..., negC: uint, C: []byte
 
 computes $C=A^B$  
 A,B,C follow interpretation above
 
 ## bexp
 
-bexp neg radix
+bexp width
 
-Stack: ..., A: []byte → ..., C: []byte
+Stack: ..., neg: uint, A: []byte → ..., C: []byte
 
 computes $C = e^A$  
 A,C follow interpretation above
 
 ## blog
 
-blog radix
+blog width
 
-Stack: ..., A: []byte → ..., C: []byte
+Stack: ..., A: []byte → ..., neg: uint, C: []byte
 
 computes $C = ln(A)$  
+`neg` represents polarity of C
 A,C follow interpretation above
-
-## decimal vs binary
-
-the above is a binary (n-ary with $n=2^m$) representation of fixed point values ~ an alternative is to use decimal representations  
-
-### pros binary
-
-- homogeneity: same representation as other opcodes (`b+` etc.)
-
-- size: if each digit is a byte, then a 256 base is optimal ~ using base 10 wastes a lot of space ~ could interpret a byte as 2 digits in the decimal expansion, which would waste less space, but gets arguably convoluted ~ on the other hand, []byte has max 4096 length, allowing a large range even in decimal even wasting space using a byte per digit ~ to represent a 512 bit binary value in decimal, we would need ca. 155 decimal digits
-
-### pros decimal
-
-- famously, 0.1 cannot be represented in binary fixed point finitely ~ this is not the case vice versa, i.e. no finite binary representation has an infinite decimal representation
-
-### question
-
-- if adopting the decimal representation, would it make sense to change the existing opcodes to the same to allow for composition of e.g. $bpow \circ b+ $
 
 
 ## use case
