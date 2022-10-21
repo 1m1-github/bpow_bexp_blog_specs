@@ -15,13 +15,13 @@ var ONE = big.NewRat(1, 1)
 var TWO = big.NewRat(2, 1)
 
 func main() {
-	a := big.NewRat(2, 1)
-	b := big.NewRat(0, 2)
-	// a := big.NewRat(23465735903, 10000000000)
-	c := pow(a, b, 10, false) // uses all methods ~ if this works, high chance of all working
+	// a := big.NewRat(2, 1)
+	b := big.NewRat(1, 2)
+	a := big.NewRat(23465735903, 10000000000)
+	// c := pow(a, b, 100, false) // uses all methods ~ if this works, high chance of all working
 	// c := exp(a, 10, false)
-	// c := log2(a, 10, true)
-	// c := ln(a, 10, true)
+	c := log2(a, 100, false)
+	// c := ln(a, 10, false)
 	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
 }
 
@@ -172,7 +172,7 @@ func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 			fmt.Println("log2 b", b.FloatString(10))
 		}
 
-		a.Mul(a, a)
+		a.Mul(a, a) // THIS IS SLOW
 		// a = big.NewRat(a.Num().Int64()*a.Num().Int64(), a.Denom().Int64()*a.Denom().Int64())
 
 		if L {fmt.Println("log2 a^2", a.FloatString(10))}
