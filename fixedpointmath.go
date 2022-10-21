@@ -57,6 +57,11 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	b = big.NewRat(1, 1)
 
+	// exp(0) == 1
+	if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
+		return b
+	}
+
 	precision := 0 // for now, precision is naiive
 	for {
 		if precision == target_precision {
@@ -85,8 +90,14 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 // logT(x) = log2(x) / log(T)
 // ln = logE
+// 0 < a
 func ln(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 	if L {fmt.Println("ln", a.FloatString(10))}
+
+	// exp(0) == 1
+	if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
+		return b
+	}
 	
 	b = log2(a, target_precision, L)
 	if L {fmt.Println("ln, a,b", a.FloatString(10), b.FloatString(10))}
@@ -101,6 +112,7 @@ func ln(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 }
 
 // http://www.claysturner.com/dsp/BinaryLogarithm.pdf
+// 0 < a
 func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	b = big.NewRat(0, 1)
