@@ -86,6 +86,14 @@ $$ b_n\xrightarrow[\text{converges}]{\text{}}b = e^a $$
 
 that algorithm uses very basic operations only, like binary shifts and integer arithmetic and works upto arbitrary precision
 
+short description of the algorithm:
+
+- we want to calc $log_2(a) = b$
+- normalise $a$ such that $1 \le a < 2 <=> 0 \le b < 1$ by halfing $a$ as long as $2 \le a$ and doubling $a$ as long as $a < 1$
+- $2 \le a^2$ is equivalent to the next bit in $b$ being set
+- in a loop, meeting comparing $a^2$ to 2 to keep revealing bits of $b$ until the desired precision is achieved
+- after the comparison in the loop, $a$ is reduced depending on the revealed bit of $b$
+
 ## discussion
 
 - should users provide output width as a param? using the same width param for inputs and outputs does not really make sense as the output will always have a larger error vs the input ~ if a user requires 5 decimal output precision, than the input should be more precise
