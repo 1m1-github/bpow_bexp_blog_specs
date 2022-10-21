@@ -80,6 +80,8 @@ $$ b_{n+1} = b_n - {f(b_n) \over f'(b_n)} = b_n - {ln(b_n) - a \over {1 \over b_
 
 $$ b_n\xrightarrow[\text{converges}]{\text{}}b = e^a $$
 
+edit: the above method is very slow ~ exp Taylor expansion is much faster
+
 ### blog
 
 `log` will be approximated using the algorithm described here: http://www.claysturner.com/dsp/BinaryLogarithm.pdf
