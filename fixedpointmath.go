@@ -15,15 +15,15 @@ var ONE = big.NewRat(1, 1)
 var TWO = big.NewRat(2, 1)
 
 func main() {
-	a := big.NewRat(2, 1)
-	// b := big.NewRat(1, 2)
+	a := big.NewRat(9, 1)
+	b := big.NewRat(1, 2)
 	// a := big.NewRat(23465735903, 10000000000)
-	// c := pow(a, b, 100, false) // uses all methods ~ if this works, high chance of all working
-	c := exp(a, 100, false)
-	// c := log2(a, 50, false)
+	c := pow(a, b, 30, false) // uses all methods ~ if this works, high chance of all working
+	// c := exp(a, 100, false)
+	// c := log2_2(a, 10, true)
 	// c := ln(a, 10, false)
-	// fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
-	fmt.Println(a.FloatString(10), c.FloatString(10))
+	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
+	// fmt.Println(a.FloatString(10), c.FloatString(10))
 }
 
 // a^b = exp(b*ln(a))
@@ -259,4 +259,73 @@ func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 	if L {fmt.Println("log2 b", b.FloatString((10)))}
 
 	return b;
+}
+
+// approximated using Newton-Raphson on the inverse (ln)
+// 0 < a
+func log2_2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
+
+	b = big.NewRat(0, 1)
+	a := big.NewRat(0, 1)
+	a.Set(_a)
+
+	if L {fmt.Println("log2", a.FloatString(10))}
+	if L {fmt.Println("log2, a.Num().Int64()", a.Num().Int64())}
+	if L {fmt.Println("log2, a.Denom().Int64()", a.Denom().Int64())}
+	
+	// range
+	if a_vs_zero := a.Cmp(ZERO); a_vs_zero <= 0 {
+		log.Fatal("log2 not defined for values <= 0");
+	}
+
+	// edge
+	if a_vs_one := a.Cmp(ONE); a_vs_one == 0 {
+		return b
+	}
+
+	// edge
+	if a_vs_two := a.Cmp(TWO); a_vs_two == 0 {
+		return big.NewRat(1, 1)
+	}
+
+	precision := 0 // for now, precision is naiive
+	for {
+		if precision == target_precision {
+			break
+		}
+
+		if L {fmt.Println("log2, precision", precision)}
+
+		// b += 2 * (a - exp(b)) / (a + exp(b))
+		e := exp(b, target_precision, L)
+		if L {fmt.Println("log2, l,b 1", e.FloatString(10), b.FloatString(10))}
+
+		l1 := big.NewRat(1, 1)
+		l1.Set(e)
+		l1.Neg(l1)
+		l1.Add(l1, a)
+		if L {fmt.Println("log2, l1", l1.FloatString(10))}
+
+		l2 := big.NewRat(1, 1)
+		l2.Set(e)
+		l2.Add(l2, a)
+		if L {fmt.Println("log2, l2", l2.FloatString(10))}
+
+		l := big.NewRat(1, 1)
+		l.Set(l2)
+		l.Inv(l)
+		l.Mul(l, l1)
+		if L {fmt.Println("log2, l", l.FloatString(10))}
+		
+		l.Mul(l, TWO)
+		
+		b.Add(b, l)
+		if L {fmt.Println("log2, l, b", l.FloatString(10), b.FloatString(10))}
+		// b += 2 * (a - exp(b)) / (a + exp(b))
+
+		precision++
+	}
+	if L {fmt.Println("log2, b end", b.FloatString(10))}
+
+	return b
 }
