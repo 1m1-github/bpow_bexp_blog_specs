@@ -1,50 +1,108 @@
+// L = log
+
 package main
 
 import (
 	"fmt"
 	"math/big"
 	"log"
+	// "reflect"
 )
 
 func main() {
-	a := big.NewRat(9, 1)
-	b := logE(a, 10)
-	fmt.Println("a", a.FloatString(10), b.FloatString(10))
+	a := big.NewRat(2, 1)
+	b := big.NewRat(1, 2)
+	// a := big.NewRat(27168861378, 10000000000)
+	c := pow(a, b, 10, false) // uses all methods ~ if this works, high chance of all working
+	// c := exp(a, 10, false)
+	// c := log2(a, 10, false)
+	// c := ln(a, 10)
+	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
 }
 
-// func exp(a *big.Rat) (b *big.Rat) {
+// a^b = exp(b*ln(a))
+func pow(a, b *big.Rat, target_precision int, L bool) (c *big.Rat) {
+	l := ln(a, target_precision, L)
+	l.Mul(l, b)
+	return exp(l, target_precision, L)
+}
 
-// }
+// approximated using Newton-Raphson on the inverse (ln)
+func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
-func logE(a *big.Rat, target_precision int) (b *big.Rat) {
-	b = log2(a, target_precision)
-	C := big.NewRat(69314718056, 100000000000)
-	b.Mul(b, C)
+	if L {fmt.Println("exp", a.FloatString(10))}
+
+	ONE := big.NewRat(1, 1) // TODO make global
+	b = big.NewRat(1, 1)
+
+	precision := 0 // for now, precision is naiive
+	for {
+		if precision == target_precision {
+			break
+		}
+
+		if L {fmt.Println("exp, precision", precision)}
+
+		l := ln(b, target_precision, L)
+		if L {fmt.Println("exp, l,b 1", l.FloatString(10), b.FloatString(10))}
+		l.Neg(l)
+		if L {fmt.Println("exp, l,b 2", l.FloatString(10), b.FloatString(10))}
+		l.Add(l, a)
+		if L {fmt.Println("exp, l,b 3", l.FloatString(10), b.FloatString(10))}
+		l.Add(l, ONE)
+		if L {fmt.Println("exp, l,b 4", l.FloatString(10), b.FloatString(10))}
+		b.Mul(b, l)
+		if L {fmt.Println("exp, l,b 5", l.FloatString(10), b.FloatString(10))}
+
+		precision++
+	}
+	fmt.Println("exp, b end", b.FloatString(10))
+
 	return b
 }
 
-func log2(_a *big.Rat, target_precision int) (b *big.Rat) {
+// logT(x) = log2(x) / log(T)
+// ln = logE
+func ln(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
+	if L {fmt.Println("ln", a.FloatString(10))}
+	
+	b = log2(a, target_precision, L)
+	if L {fmt.Println("ln, a,b", a.FloatString(10), b.FloatString(10))}
+	
+	C := big.NewRat(69314718056, 100000000000)
+	if L {fmt.Println("ln, C", C.FloatString(10))}
+	
+	b.Mul(b, C)
+	if L {fmt.Println("ln, a,b,C", a.FloatString(10), b.FloatString(10), C.FloatString(10))}
+	
+	return b
+}
 
-	// fmt.Println("log2", _a.FloatString(10))
+// http://www.claysturner.com/dsp/BinaryLogarithm.pdf
+func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
-	a := big.NewRat(_a.Num().Int64(), _a.Denom().Int64())
+	b = big.NewRat(0, 1)
 
+	ONE := big.NewRat(1, 1)
+	MINUS_ONE := big.NewRat(-1, 1)
 	ZERO := big.NewRat(0, 1)
+	TWO := big.NewRat(2, 1)
+
+	a := big.NewRat(0, 1)
+	a.Set(_a)
+
+	if L {fmt.Println("log2", a.FloatString(10))}
+	if L {fmt.Println("log2, a.Num().Int64()", a.Num().Int64())}
+	if L {fmt.Println("log2, a.Denom().Int64()", a.Denom().Int64())}
+	
 	if a_vs_zero := a.Cmp(ZERO); a_vs_zero <= 0 {
 		log.Fatal("log2 not defined for values <= 0");
 	}
 
-
-	ONE := big.NewRat(1, 1)
 	if a_vs_one := a.Cmp(ONE); a_vs_one == 0 {
 		return ZERO;
 	}
 	
-	MINUS_ONE := big.NewRat(-1, 1)
-	TWO := big.NewRat(2, 1)
-
-	b = big.NewRat(0, 1)
-
 	// double a until 1 <= a
 	for {
 
@@ -55,7 +113,7 @@ func log2(_a *big.Rat, target_precision int) (b *big.Rat) {
 		a.Num().Lsh(a.Num(), 1) // double
 		b.Add(b, MINUS_ONE)
 	}
-	// fmt.Println("doubled", a.FloatString(10), b.FloatString(10))
+	if L {fmt.Println("log2 doubled", a.FloatString(10), b.FloatString(10))}
 
 	// half a until a < 2
 	for {
@@ -67,44 +125,46 @@ func log2(_a *big.Rat, target_precision int) (b *big.Rat) {
 		a.Denom().Lsh(a.Denom(), 1) // half
 		b.Add(b, ONE)
 	}
-	// fmt.Println("halved", a.FloatString(10), b.FloatString(10))
+	if L {fmt.Println("log2 halved", a.FloatString(10), b.FloatString(10))}
 
 	// from here: 1 <= a < 2 <=> 0 <= b < 1
 
 	// compare a^2 to 2 to reveal b bit-by-bit
-	precision_counter := 0
+	precision_counter := 0 // for now, precision is naiive
 	v := big.NewRat(1, 2)
 	for {
 		if target_precision == precision_counter {
 			break
 		}
 
-		// fmt.Println("precision_counter", precision_counter)
-		// fmt.Println("v", v.FloatString((10)))
-		// fmt.Println("a", a.FloatString((10)))
-		// fmt.Println("b", b.FloatString((10)))
+		if L {
+		fmt.Println("log2 precision_counter", precision_counter)
+		fmt.Println("log2 v", v.FloatString(10))
+		fmt.Println("log2 a", a.FloatString(10))
+		fmt.Println("log2 b", b.FloatString(10))
+		}
 
 		a.Mul(a, a)
+		// a = big.NewRat(a.Num().Int64()*a.Num().Int64(), a.Denom().Int64()*a.Denom().Int64())
 
-		// fmt.Println("a^2", a.FloatString((10)))
+		if L {fmt.Println("log2 a^2", a.FloatString(10))}
 
 		if a2_vs_two := a.Cmp(TWO); a2_vs_two != -1 {
 			
-			// fmt.Println("2 <= a^2", a.FloatString(10))
+			if L {fmt.Println("log2 2 <= a^2", a.FloatString(10))}
 
 			a.Denom().Lsh(a.Denom(), 1) // half
 			b.Add(b, v)
-		} 
-		// else {
-		// 	fmt.Println("a^2 < 2")
-		// }
+		} else {
+			if L {fmt.Println("log2 a^2 < 2")}
+		}
 
 		v.Denom().Lsh(v.Denom(), 1) // half
 
 		precision_counter++
 	}
 
-	// fmt.Println("b", b.FloatString((10)))
+	if L {fmt.Println("log2 b", b.FloatString((10)))}
 
 	return b;
 }
