@@ -12,9 +12,9 @@ func main() {
 	fmt.Println("a", a.FloatString(10), b.FloatString(10))
 }
 
-func exp(a *big.Rat) (b *big.Rat) {
+// func exp(a *big.Rat) (b *big.Rat) {
 
-}
+// }
 
 func logE(a *big.Rat, target_precision int) (b *big.Rat) {
 	b = log2(a, target_precision)
