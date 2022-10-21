@@ -78,6 +78,8 @@ $$ e^a = b <=> a = ln(b) $$
 
 $$ b_{n+1} = b_n - {f(b_n) \over f'(b_n)} = b_n - {ln(b_n) - a \over {1 \over b_n}} = b_n \cdot (1 - ln(b_n) + a)$$
 
+$$ b_n\xrightarrow[\text{converges}]{\text{}}b = e^a $$
+
 ### blog
 
 `log` will be approximated using the algorithm described here: http://www.claysturner.com/dsp/BinaryLogarithm.pdf
