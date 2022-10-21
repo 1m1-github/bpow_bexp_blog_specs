@@ -12,6 +12,10 @@ func main() {
 	fmt.Println("a", a.FloatString(10), b.FloatString(10))
 }
 
+func exp(a *big.Rat) (b *big.Rat) {
+
+}
+
 func logE(a *big.Rat, target_precision int) (b *big.Rat) {
 	b = log2(a, target_precision)
 	C := big.NewRat(69314718056, 100000000000)
@@ -67,6 +71,7 @@ func log2(_a *big.Rat, target_precision int) (b *big.Rat) {
 
 	// from here: 1 <= a < 2 <=> 0 <= b < 1
 
+	// compare a^2 to 2 to reveal b bit-by-bit
 	precision_counter := 0
 	v := big.NewRat(1, 2)
 	for {
