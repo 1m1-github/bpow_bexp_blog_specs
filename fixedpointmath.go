@@ -16,7 +16,7 @@ var TWO = big.NewRat(2, 1)
 
 func main() {
 	a := big.NewRat(2, 1)
-	b := big.NewRat(-1, 2)
+	b := big.NewRat(0, 2)
 	// a := big.NewRat(23465735903, 10000000000)
 	c := pow(a, b, 10, false) // uses all methods ~ if this works, high chance of all working
 	// c := exp(a, 10, false)
@@ -26,17 +26,24 @@ func main() {
 }
 
 // a^b = exp(b*ln(a))
+// 0 <= a
 func pow(a, b *big.Rat, target_precision int, L bool) (c *big.Rat) {
 
-	// a^0 == 1
-	// if b_vs_zero := b.Cmp(ZERO); b_vs_zero == 0 {
-	// 	return ONE
-	// }
+	c = big.NewRat(0, 1)
 
-	// // 0^b == 0
-	// if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
-	// 	return ZERO
-	// }
+	// a^0 == 1
+	if b_vs_zero := b.Cmp(ZERO); b_vs_zero == 0 {
+		c.Add(c, ONE)
+		return c
+	}
+
+	// 0^b == 0
+	if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
+		return c
+	} else if a_vs_zero == -1 {
+		// a <= 0 fails
+		log.Fatal("pow basis cannot be negative")
+	}
 
 	l := ln(a, target_precision, L)
 	l.Mul(l, b)
