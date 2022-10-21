@@ -9,19 +9,35 @@ import (
 	// "reflect"
 )
 
+var MINUS_ONE = big.NewRat(-1, 1)
+var ZERO = big.NewRat(0, 1)
+var ONE = big.NewRat(1, 1)
+var TWO = big.NewRat(2, 1)
+
 func main() {
 	a := big.NewRat(2, 1)
-	b := big.NewRat(1, 2)
-	// a := big.NewRat(27168861378, 10000000000)
+	b := big.NewRat(-1, 2)
+	// a := big.NewRat(23465735903, 10000000000)
 	c := pow(a, b, 10, false) // uses all methods ~ if this works, high chance of all working
 	// c := exp(a, 10, false)
-	// c := log2(a, 10, false)
-	// c := ln(a, 10)
+	// c := log2(a, 10, true)
+	// c := ln(a, 10, true)
 	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
 }
 
 // a^b = exp(b*ln(a))
 func pow(a, b *big.Rat, target_precision int, L bool) (c *big.Rat) {
+
+	// a^0 == 1
+	// if b_vs_zero := b.Cmp(ZERO); b_vs_zero == 0 {
+	// 	return ONE
+	// }
+
+	// // 0^b == 0
+	// if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
+	// 	return ZERO
+	// }
+
 	l := ln(a, target_precision, L)
 	l.Mul(l, b)
 	return exp(l, target_precision, L)
@@ -32,7 +48,6 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	if L {fmt.Println("exp", a.FloatString(10))}
 
-	ONE := big.NewRat(1, 1) // TODO make global
 	b = big.NewRat(1, 1)
 
 	precision := 0 // for now, precision is naiive
@@ -56,7 +71,7 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 		precision++
 	}
-	fmt.Println("exp, b end", b.FloatString(10))
+	if L {fmt.Println("exp, b end", b.FloatString(10))}
 
 	return b
 }
@@ -82,12 +97,6 @@ func ln(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	b = big.NewRat(0, 1)
-
-	ONE := big.NewRat(1, 1)
-	MINUS_ONE := big.NewRat(-1, 1)
-	ZERO := big.NewRat(0, 1)
-	TWO := big.NewRat(2, 1)
-
 	a := big.NewRat(0, 1)
 	a.Set(_a)
 
@@ -100,7 +109,7 @@ func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 	}
 
 	if a_vs_one := a.Cmp(ONE); a_vs_one == 0 {
-		return ZERO;
+		return b
 	}
 	
 	// double a until 1 <= a
@@ -138,10 +147,10 @@ func log2(_a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 		}
 
 		if L {
-		fmt.Println("log2 precision_counter", precision_counter)
-		fmt.Println("log2 v", v.FloatString(10))
-		fmt.Println("log2 a", a.FloatString(10))
-		fmt.Println("log2 b", b.FloatString(10))
+			fmt.Println("log2 precision_counter", precision_counter)
+			fmt.Println("log2 v", v.FloatString(10))
+			fmt.Println("log2 a", a.FloatString(10))
+			fmt.Println("log2 b", b.FloatString(10))
 		}
 
 		a.Mul(a, a)
