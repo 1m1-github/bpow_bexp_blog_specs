@@ -19,8 +19,7 @@ func main() {
 	// b := big.NewRat(1, 2)
 	// a := big.NewRat(23465735903, 10000000000)
 	// c := pow(a, b, 100, false) // uses all methods ~ if this works, high chance of all working
-	c := exp_2(a, 100, false)
-	// c := exp(a, 10, false)
+	c := exp(a, 100, false)
 	// c := log2(a, 50, false)
 	// c := ln(a, 10, false)
 	// fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
@@ -53,7 +52,7 @@ func pow(a, b *big.Rat, target_precision int, L bool) (c *big.Rat) {
 }
 
 // approximated using Newton-Raphson on the inverse (ln)
-func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
+func exp_slow(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	if L {fmt.Println("exp", a.FloatString(10))}
 
@@ -72,16 +71,22 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 		if L {fmt.Println("exp, precision", precision)}
 
+		// b *= 1 + a - ln(a)
 		l := ln(b, target_precision, L)
 		if L {fmt.Println("exp, l,b 1", l.FloatString(10), b.FloatString(10))}
+
 		l.Neg(l)
 		if L {fmt.Println("exp, l,b 2", l.FloatString(10), b.FloatString(10))}
+		
 		l.Add(l, a)
 		if L {fmt.Println("exp, l,b 3", l.FloatString(10), b.FloatString(10))}
+		
 		l.Add(l, ONE)
 		if L {fmt.Println("exp, l,b 4", l.FloatString(10), b.FloatString(10))}
+		
 		b.Mul(b, l)
 		if L {fmt.Println("exp, l,b 5", l.FloatString(10), b.FloatString(10))}
+		// b *= 1 + a - ln(a)
 
 		precision++
 	}
@@ -91,14 +96,14 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 }
 
 // use taylor expansion
-func exp_2(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
+func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 	if L {fmt.Println("exp", a.FloatString(10))}
 
 	b = big.NewRat(1, 1)
 	
-	t := big.NewRat(1, 1)
-	f := big.NewRat(1, 1)
+	a_power := big.NewRat(1, 1)
+	factorial := big.NewRat(1, 1)
 
 	// exp(0) == 1
 	if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
@@ -113,20 +118,31 @@ func exp_2(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 
 		if L {fmt.Println("exp, precision", precision)}
 
-		t.Mul(t, a)
-		if L {fmt.Println("exp, t", t)}
-		ft := big.NewRat(int64(precision + 1), 1)
-		if L {fmt.Println("exp, ft", ft)}
-		f.Mul(f, ft)
-		if L {fmt.Println("exp, f", f)}
-		ft.Inv(f)
-		if L {fmt.Println("exp, ft", ft)}
-		tf := big.NewRat(1, 1)
-		if L {fmt.Println("exp, tf", tf)}
-		tf.Mul(t, ft)
-		if L {fmt.Println("exp, tf", tf)}
+		// a^n
+		a_power.Mul(a_power, a)
+		if L {fmt.Println("exp, a_power", a_power)}
+		// a^n
 
-		b.Add(b, tf)
+		// n!
+		factorial_next := big.NewRat(int64(precision + 1), 1)
+		factorial.Mul(factorial, factorial_next)
+		if L {fmt.Println("exp, factorial, factorial_next", factorial, factorial_next)}
+		// n!
+		
+		// 1/n!
+		factorial_inv := big.NewRat(1, 1)
+		factorial_inv.Inv(factorial)
+		if L {fmt.Println("exp, factorial_inv", factorial_inv)}
+		// 1/n!
+
+		// a^n/n!
+		taylor_term := big.NewRat(1, 1)
+		taylor_term.Set(a_power)
+		taylor_term.Mul(taylor_term, factorial_inv)
+		if L {fmt.Println("exp, taylor_term", taylor_term)}
+		// a^n/n!
+
+		b.Add(b, taylor_term)
 		if L {fmt.Println("exp, b", b)}
 
 		precision++
