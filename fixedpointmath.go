@@ -15,14 +15,16 @@ var ONE = big.NewRat(1, 1)
 var TWO = big.NewRat(2, 1)
 
 func main() {
-	// a := big.NewRat(2, 1)
-	b := big.NewRat(1, 2)
-	a := big.NewRat(23465735903, 10000000000)
+	a := big.NewRat(2, 1)
+	// b := big.NewRat(1, 2)
+	// a := big.NewRat(23465735903, 10000000000)
 	// c := pow(a, b, 100, false) // uses all methods ~ if this works, high chance of all working
+	c := exp_2(a, 100, false)
 	// c := exp(a, 10, false)
-	c := log2(a, 100, false)
+	// c := log2(a, 50, false)
 	// c := ln(a, 10, false)
-	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
+	// fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
+	fmt.Println(a.FloatString(10), c.FloatString(10))
 }
 
 // a^b = exp(b*ln(a))
@@ -80,6 +82,52 @@ func exp(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
 		if L {fmt.Println("exp, l,b 4", l.FloatString(10), b.FloatString(10))}
 		b.Mul(b, l)
 		if L {fmt.Println("exp, l,b 5", l.FloatString(10), b.FloatString(10))}
+
+		precision++
+	}
+	if L {fmt.Println("exp, b end", b.FloatString(10))}
+
+	return b
+}
+
+// use taylor expansion
+func exp_2(a *big.Rat, target_precision int, L bool) (b *big.Rat) {
+
+	if L {fmt.Println("exp", a.FloatString(10))}
+
+	b = big.NewRat(1, 1)
+	
+	t := big.NewRat(1, 1)
+	f := big.NewRat(1, 1)
+
+	// exp(0) == 1
+	if a_vs_zero := a.Cmp(ZERO); a_vs_zero == 0 {
+		return b
+	}
+
+	precision := 0 // for now, precision is naiive
+	for {
+		if precision == target_precision {
+			break
+		}
+
+		if L {fmt.Println("exp, precision", precision)}
+
+		t.Mul(t, a)
+		if L {fmt.Println("exp, t", t)}
+		ft := big.NewRat(int64(precision + 1), 1)
+		if L {fmt.Println("exp, ft", ft)}
+		f.Mul(f, ft)
+		if L {fmt.Println("exp, f", f)}
+		ft.Inv(f)
+		if L {fmt.Println("exp, ft", ft)}
+		tf := big.NewRat(1, 1)
+		if L {fmt.Println("exp, tf", tf)}
+		tf.Mul(t, ft)
+		if L {fmt.Println("exp, tf", tf)}
+
+		b.Add(b, tf)
+		if L {fmt.Println("exp, b", b)}
 
 		precision++
 	}
