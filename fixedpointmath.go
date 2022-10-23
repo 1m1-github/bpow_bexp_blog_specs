@@ -16,17 +16,21 @@ var TWO = big.NewRat(2, 1)
 var MAX_ERROR = big.NewRat(1, 10000000)
 
 func main() {
-	a := big.NewRat(9, 1)
+	a := big.NewRat(1, 1)
 	b := big.NewRat(1, 2)
 	// a := big.NewRat(23465735903, 10000000000)
-	c := pow(a, b, 30, false) // uses all methods ~ if this works, high chance of all working
-	// c := exp(a, 100, false)
+
+	for i := 1; i < 20; i++ {
+		// c := ln(a, i, false)
+		c := exp(a, i, false)
+		// c := pow(a, b, i, false) // uses all methods ~ if this works, high chance of all working
+		fmt.Println(i, a.FloatString(10), b.FloatString(10), c.FloatString(10))
+	}
 	// c := log2(a, 5, false)
 	
 	// c := ln_2(a, 10, false)
 	// fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
 	// c = ln(a, 10, false)
-	fmt.Println(a.FloatString(10), b.FloatString(10), c.FloatString(10))
 	// fmt.Println(a.FloatString(10), c.FloatString(10))
 }
 
