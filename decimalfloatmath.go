@@ -66,12 +66,18 @@ func main() {
 	// fmt.Println(c)
 
 	// zero := int{false, 0}
-	L := true
+	L := false
+
 	one := decimal{true, *big.NewInt(1), 0}
 	two := add(&one, &one, L)
 	four := add(&two, &two, L)
 	six := add(&four, &two, L)
 	fmt.Println(one, two, four, six)
+
+	a := decimal{true, *big.NewInt(75), -2} // -0.75
+	b := decimal{false, *big.NewInt(25), -3} // 0.025
+	c := add(&a, &b, L) // -0.75 + 0.025 = -0.725
+	fmt.Println(a, b, c)
 }
 
 // func add_int(a, b *int) (int) { // a + b
