@@ -15,7 +15,7 @@ var ONE = big.NewRat(1, 1)
 var TWO = big.NewRat(2, 1)
 var MAX_ERROR = big.NewRat(1, 10000000)
 
-func main() {
+func main_old() {
 	a := big.NewRat(1, 1)
 	b := big.NewRat(1, 2)
 	// a := big.NewRat(23465735903, 10000000000)
