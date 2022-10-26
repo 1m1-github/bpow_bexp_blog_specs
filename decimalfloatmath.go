@@ -13,8 +13,10 @@ package main
 
 import (
 	"fmt"
+	// "runtime"
 	// "math"
 	"math/big"
+	"strings"
 	// "log"
 	// "reflect"
 	// "bpow/int"
@@ -22,6 +24,7 @@ import (
 
 var ZERO_BIGINT = big.NewInt(0)
 var ONE_BIGINT = big.NewInt(1)
+var TEN_BIGINT = big.NewInt(10)
 // var ONE_DECIMAL = decimal{false, *ONE_BIGINT, 0}
 
 // nomenclature
@@ -73,37 +76,66 @@ func main() {
 	// fmt.Println(c)
 
 	// zero := int{false, 0}
-	L := false
+	// L := false
 
+	var a decimal
 	out := decimal{false, *ZERO_BIGINT, 0}
 
-	a := decimal{true, *big.NewInt(75), -2} // -0.75
-	b := decimal{false, *big.NewInt(25), -3} // 0.025
-	c := add(&a, &b, &out, L) // -0.75 + 0.025 = -0.725
-	fmt.Println(a, b, c)
+	// a := decimal{true, *big.NewInt(75), -2} // -0.75
+	// b := decimal{false, *big.NewInt(25), -3} // 0.025
+	// c := add(&a, &b, &out, L) // -0.75 + 0.025 = -0.725
+	// fmt.Println(a, b, c)
 
-	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	c = negate(&a, &out, L) // 0.75
-	fmt.Println(a, c)
+	// a = decimal{true, *big.NewInt(75), -2} // -0.75
+	// c = negate(&a, &out, L) // 0.75
+	// fmt.Println(a, c)
 
-	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = subtract(&a, &b, &out, L) // -0.75 - 0.025 = -0.775
-	fmt.Println(a, b, c)
+	// a = decimal{true, *big.NewInt(75), -2} // -0.75
+	// b = decimal{false, *big.NewInt(25), -3} // 0.025
+	// c = subtract(&a, &b, &out, L) // -0.75 - 0.025 = -0.775
+	// fmt.Println(a, b, c)
 
-	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = multiply(&a, &b, &out, L) // -0.75 * 0.025 = -0.018750000000000003
-	fmt.Println(a, b, c)
+	// a = decimal{true, *big.NewInt(75), -2} // -0.75
+	// b = decimal{false, *big.NewInt(25), -3} // 0.025
+	// c = multiply(&a, &b, &out, L) // -0.75 * 0.025 = -0.018750000000000003
+	// fmt.Println(a, b, c)
 
-	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	c = inverse(&a, &out, 5, L) // -4/3
-	fmt.Println(a, c)
+	// a = decimal{true, *big.NewInt(75), -2} // -0.75
+	// c = inverse(&a, &out, 5, L) // -4/3
+	// fmt.Println(a, c)
 
-	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = divide(&a, &b, &out, 5, L) // -0.75 / 0.025 = -0.018750000000000003
-	fmt.Println(a, b, c)
+	// a = decimal{true, *big.NewInt(75), -2} // -0.75
+	// b = decimal{false, *big.NewInt(25), -3} // 0.025
+	// c = divide(&a, &b, &out, 5, L) // -0.75 / 0.025 = -0.018750000000000003
+	// fmt.Println(a, b, c)
+
+	// as := String(&decimal{false, *big.NewInt(0), 0})
+	// bs := "0"
+	// fmt.Println(as == bs)
+	// as = String(&decimal{true, *big.NewInt(75), -2})
+	// bs = "-0.75"
+	// fmt.Println(as == bs)
+	// as = String(&decimal{false, *big.NewInt(75), 5})
+	// bs = "7500000"
+	// fmt.Println(as == bs)
+
+	a = decimal{false, *big.NewInt(5000000000), -10} // 0.5
+	precision := int64(10)
+	normalize(&a, &out, precision, true, true)
+	fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
+	a = decimal{false, *big.NewInt(5000000000), 10} // 0.5
+	precision = int64(10)
+	normalize(&a, &out, precision, true, true)
+	fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
+
+	// func round(a, out *decimal, precision int64, normal bool) (*decimal) {
+
+	// a = decimal{false, *big.NewInt(1), 0} // -0.75
+	// taylor_precision := uint(3)
+	// precision := int64(10)
+	// exp_df(&a, &out, taylor_precision, precision, true)
+	// // fmt.Println(a, out)
+	// fmt.Println(String(&a), String(&out))		
 }
 
 // func add_int(a, b *int) (int) { // a + b
@@ -119,8 +151,50 @@ func main() {
 // 	return add_int(a, &bn)
 // }
 
+// # Convert a decimal to a string
+func String(a *decimal) (string) {
+
+	negative := ""
+	if a.n {
+		negative = "-"
+	}
+
+	a_q_int := int(a.q)
+	a_c_str := a.c.String()
+
+	if 0 < a.q {
+		zeros := strings.Repeat("0", a_q_int)
+		return fmt.Sprintf("%v%v%v", negative, a_c_str, zeros)
+	} else if a.q < 0 {
+		len_c := len(a_c_str)
+		shift := a_q_int + len_c
+		if 0 < shift {
+			return fmt.Sprintf("%v%v%v%v", negative, a_c_str[1:shift], ".", a_c_str[shift+1:])
+		}
+		zeros := strings.Repeat("0", -shift)
+		return fmt.Sprintf("%v%v%v%v", negative, "0.", zeros, a_c_str)
+	}
+
+	return fmt.Sprintf("%v%v", negative, a_c_str)
+
+    // c = string(x.c)
+    // negative = (x.s == 1) ? "-" : ""
+    // if x.q > 0
+    //     print(io, negative, c, repeat("0", x.q))
+    // elseif x.q < 0
+    //     shift = x.q + length(c)
+    //     if shift > 0
+    //         print(io, negative, c[1:shift], ".", c[(shift+1):end])
+    //     else
+    //         print(io, negative, "0.", repeat("0", -shift), c)
+    //     end
+    // else
+    //     print(io, negative, c)
+    // end
+}
+
 // c = a + b
-func add(a, b, out *decimal, L bool) (*decimal) {
+func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	if L {fmt.Println("add, a, b", a, b)}
 
 	// cx = (-1)^x.s * x.c * 10^max(x.q - y.q, 0)
@@ -184,14 +258,13 @@ func add(a, b, out *decimal, L bool) (*decimal) {
 	if L {fmt.Println("q", q)}
 	// min(x.q, y.q)
 
-	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
-	// todo
-	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
-
 	out.n = n
 	out.c = *c.Abs(&c)
 	out.q = q
-	return out
+
+	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
+	return normalize(out, out, precision, false, L)
+	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
 }
 
 // -a
@@ -203,31 +276,47 @@ func negate(a, out *decimal, L bool) (*decimal) {
 }
 
 // a - b
-func subtract(a, b, out *decimal, L bool) (*decimal) {
+func subtract(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	negate(b, out, L)
-	add(a, out, out, L)
+	add(a, out, out, precision, L)
 	return out
 }
 
 // a * b
-func multiply(a, b, out *decimal, L bool) (*decimal) {
-	out.n = !(a.n && b.n)
+func multiply(a, b, out *decimal, precision int64, L bool) (*decimal) {
+	// if L {fmt.Println("multiply", "a", String(a), "b", String(b), "precision", precision)}
+	// if L {fmt.Println("multiply", "a", a, "b", b)}
+	out.n = a.n != b.n
+	// if L {fmt.Println("multiply", "out.n", out.n)}
 	out.c.Mul(&a.c, &b.c)
+	// if L {fmt.Println("multiply", "out.c", out.c)}
 	out.q = a.q + b.q
-	return out
+	// if L {fmt.Println("multiply", "out.q", out.q)}
+	return normalize(out, out, precision, false, L)
 }
 
 // 1 / a
 func inverse(a, out *decimal, precision int64, L bool) (*decimal) {
+	if L {fmt.Println("inverse", "a", String(a), "precision", precision)}
+
 	out.n = a.n
+
+	if L {fmt.Println("inverse", "out.n", out.n)}
 
 	ten_power := big.NewInt(10)
 	ten_power.Exp(ten_power, big.NewInt(-a.q + precision), big.NewInt(0))
 	out.c.Div(ten_power, &a.c)
+
+	if L {fmt.Println("inverse", "out.c", out.c)}
 	
 	out.q = -precision
+
+	if L {fmt.Println("inverse", "out.q", out.q)}
+	if L {fmt.Println("inverse", "out", out, String(out))}
 	
-	return out
+	norm := normalize(out, out, precision, false, L)
+	if L {fmt.Println("inverse", "norm", norm, String(norm))}
+	return norm
 	
 	// c = round(BigInt(10)^(-x.q + DIGITS) / x.c) # the decimal point of 1/x.c is shifted by -x.q so that the integer part of the result is correct and then it is shifted further by DIGITS to also cover some digits from the fractional part.
     // q = -DIGITS # we only need to remember that there are these digits after the decimal point
@@ -244,13 +333,15 @@ func iszero(a *decimal) (bool) {
 // a / b
 func divide(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	inverse(b, out, precision, L)
-	multiply(a, out, out, L)
+	multiply(a, out, out, precision, L)
 	return out
 }
 
 // e^a
 // df decimal float
-func exp_df(a, out *decimal, precision int64, L bool) (*decimal) {
+func exp_df(a, out *decimal, taylor_precision uint, precision int64, L bool) (*decimal) {
+
+	if L {fmt.Println("a", String(a), "taylor_precision", taylor_precision, "precision", precision)}
 
 	if iszero(a) {
 		out.n = false
@@ -259,12 +350,140 @@ func exp_df(a, out *decimal, precision int64, L bool) (*decimal) {
 		return out
 	}
 
-	// a_power := decimal{false, *big.NewInt(1), 0}
+	ONE := decimal{false, *ONE_BIGINT, 0} // 1
+	a_power := decimal{false, *ONE_BIGINT, 0} // 1
+	factorial := decimal{false, *ONE_BIGINT, 0} // 1
+	factorial_next := decimal{false, *ZERO_BIGINT, 0} // 0
+	factorial_inv := decimal{false, *ONE_BIGINT, 0} // 1
+	
+	// out = 1
+	out.n = false
+	out.c = *ONE_BIGINT
+	out.q = 0
 
-	// for i := int64(0) ; i < precision ; i++ {
-	// 	a_power = multiply(&a_power, &a_power, L)
+	if L {fmt.Println("out", String(out))}
 
-	// }
+	for i := uint(0) ; i < taylor_precision ; i++ {
+		if L {fmt.Println("i", i)}
 
-	return &decimal{false, *big.NewInt(0), 0}
+		if L {fmt.Println("a", String(a))}
+		if L {fmt.Println("a_power", String(&a_power))}
+		multiply(&a_power, a, &a_power, precision, false) // a^i
+		if L {fmt.Println("a_power", String(&a_power))}
+
+		if L {fmt.Println("ONE", String(&ONE))}
+		if L {fmt.Println("factorial_next", String(&factorial_next))}
+		add(&factorial_next, &ONE, &factorial_next, precision, false) // i + 1
+		if L {fmt.Println("factorial_next", String(&factorial_next))}
+		
+		if L {fmt.Println("factorial", String(&factorial))}
+		multiply(&factorial, &factorial_next, &factorial, precision, false) // i!
+		if L {fmt.Println("factorial", String(&factorial))}
+		
+		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
+		inverse(&factorial, &factorial_inv, precision, true) // 1 / i!
+		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
+
+		multiply(&a_power, &factorial_inv, &factorial_inv, precision, false) // store in factorial_inv as not needed anymore
+		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
+
+		if L {fmt.Println("out", String(out))}
+		add(out, &factorial_inv, out, precision, false)
+		if L {fmt.Println("out", String(out))}
+	}
+
+	if L {fmt.Println("out", String(out))}
+
+	return out
+}
+
+// # Rounding
+// function round(x::Decimal; digits::Int=0, normal::Bool=false)
+//     shift = BigInt(digits) + x.q
+//     if shift > BigInt(0) || shift < x.q
+//         (normal) ? x : normalize(x, rounded=true)
+//     else
+//         c = Base.round(x.c / BigInt(10)^(-shift))
+//         d = Decimal(x.s, BigInt(c), x.q - shift)
+//         (normal) ? d : normalize(d, rounded=true)
+//     end
+// end
+func round(a, out *decimal, precision int64, normal bool, L bool) (*decimal) {
+
+	shift := big.NewInt(precision)
+	q := big.NewInt(a.q)
+	shift.Add(shift, q)
+
+	out.n = a.n
+	out.c = a.c
+	out.q = a.q
+
+	if shift.Cmp(ZERO_BIGINT) == 1 || shift.Cmp(q) == -1 {
+		if normal {
+			return out
+		}
+		return normalize(out, out, precision, true, L)
+	}
+
+	shift.Neg(shift) // shift *= -1
+	var ten_power big.Int
+	ten_power.Exp(TEN_BIGINT, shift, ZERO_BIGINT) // 10^shift
+	out.c.Div(&out.c, &ten_power)
+	out.q += shift.Int64()
+
+	if normal {
+		return out
+	}
+
+	return normalize(out, out, precision, true, L)
+}
+
+
+// # Normalization: remove trailing zeros in coefficient
+// function normalize(x::Decimal; rounded::Bool=false)
+//     p = 0
+//     if x.c != 0
+//         while x.c % 10^(p+1) == 0
+//             p += 1
+//         end
+//     end
+//     c = BigInt(x.c / 10^p)
+//     q = (c == 0 && x.s == 0) ? 0 : x.q + p
+//     if rounded
+//         Decimal(x.s, abs(c), q)
+//     else
+//         round(Decimal(x.s, abs(c), q), digits=DIGITS, normal=true)
+//     end
+// end
+
+func normalize(a, out *decimal, precision int64, rounded bool, L bool) (*decimal) {
+	out.n = a.n
+	
+	p := int64(0)
+	ten_power := big.NewInt(10) // 10^(p+1)
+	if a.c.Cmp(ZERO_BIGINT) != 0 { // if a.c != 0
+		for {
+			var t big.Int
+			if t.Mod(&a.c, ten_power).Cmp(ZERO_BIGINT) != 0 { // if a.c % 10^(p+1) != 0
+				break
+			}
+			p++ // p = p + 1
+			ten_power.Mul(ten_power, TEN_BIGINT) // 10^(p+1)
+		}
+	}
+	// runtime.Breakpoint()
+	ten_power.Div(ten_power, TEN_BIGINT) // 10^p
+	out.c.Div(&a.c, ten_power) // out.c = a.c / 10^p
+	out.c.Abs(&out.c) // out.c = abs(out.c)
+
+	out.q = 0
+	if !(out.c.Cmp(ZERO_BIGINT) == 0 && !a.n) { // if out.c == 0
+		out.q = a.q + p
+	}
+	
+	if rounded {
+		return out
+	}
+
+	return round(out, out, precision, true, L)
 }
