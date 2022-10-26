@@ -201,6 +201,7 @@ func subtract(a, b *decimal, L bool) (decimal) {
 	return add(a, &bn, L)
 }
 
+// a * b
 func multiply(a, b *decimal, L bool) (decimal) {
 	n := !(a.n && b.n)
 	var c big.Int
@@ -208,6 +209,7 @@ func multiply(a, b *decimal, L bool) (decimal) {
 	return decimal{n, c, a.q + b.q}
 }
 
+// 1 / a
 func inverse(a *decimal, precision int64, L bool) (decimal) {
 	ten_power := big.NewInt(10)
 	ten_power.Exp(ten_power, big.NewInt(-a.q + precision), big.NewInt(0))
@@ -221,6 +223,7 @@ func inverse(a *decimal, precision int64, L bool) (decimal) {
     // normalize(Decimal(x.s, c, q))
 }
 
+// a / b
 func divide(a, b *decimal, precision int64, L bool) (decimal) {
 	bi := inverse(b, precision, L)
 	return multiply(a, &bi, L)
