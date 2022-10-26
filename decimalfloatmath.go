@@ -118,24 +118,32 @@ func main() {
 	// as = String(&decimal{false, *big.NewInt(75), 5})
 	// bs = "7500000"
 	// fmt.Println(as == bs)
+	// as := String(&decimal{false, *big.NewInt(75), -1})
+	// bs := "7.5"
+	// fmt.Println(as)
+	// fmt.Println(as == bs)
 
-	a = decimal{false, *big.NewInt(5000000000), -10} // 0.5
-	precision := int64(10)
-	normalize(&a, &out, precision, true, true)
-	fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
-	a = decimal{false, *big.NewInt(5000000000), 10} // 0.5
-	precision = int64(10)
-	normalize(&a, &out, precision, true, true)
-	fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
+	// a = decimal{false, *big.NewInt(100), -2} // 1
+	// precision := int64(10)
+	// normalize(&a, &out, precision, true, true)
+	// fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
+	// a = decimal{false, *big.NewInt(5000000000), 10} // 0.5
+	// precision = int64(10)
+	// normalize(&a, &out, precision, true, true)
+	// fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
 
 	// func round(a, out *decimal, precision int64, normal bool) (*decimal) {
-
-	// a = decimal{false, *big.NewInt(1), 0} // -0.75
-	// taylor_precision := uint(3)
+	// a = decimal{false, *big.NewInt(75), -2} // 0.75
 	// precision := int64(10)
-	// exp_df(&a, &out, taylor_precision, precision, true)
-	// // fmt.Println(a, out)
-	// fmt.Println(String(&a), String(&out))		
+	// round(&a, &out, precision, true, true)
+	// fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
+
+	a = decimal{false, *big.NewInt(1), 0} // 1
+	taylor_precision := uint(20)
+	precision := int64(20)
+	exp_df(&a, &out, taylor_precision, precision, false)
+	// fmt.Println(a, out)
+	fmt.Println(String(&a), String(&out))		
 }
 
 // func add_int(a, b *int) (int) { // a + b
@@ -169,7 +177,7 @@ func String(a *decimal) (string) {
 		len_c := len(a_c_str)
 		shift := a_q_int + len_c
 		if 0 < shift {
-			return fmt.Sprintf("%v%v%v%v", negative, a_c_str[1:shift], ".", a_c_str[shift+1:])
+			return fmt.Sprintf("%v%v%v%v", negative, a_c_str[0:shift], ".", a_c_str[shift:])
 		}
 		zeros := strings.Repeat("0", -shift)
 		return fmt.Sprintf("%v%v%v%v", negative, "0.", zeros, a_c_str)
@@ -191,6 +199,10 @@ func String(a *decimal) (string) {
     // else
     //     print(io, negative, c)
     // end
+}
+
+func copy(a *decimal) (*decimal) {
+	return &decimal{a.n, a.c, a.q}
 }
 
 // c = a + b
@@ -263,7 +275,7 @@ func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	out.q = q
 
 	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
-	return normalize(out, out, precision, false, L)
+	return normalize(copy(out), out, precision, false, L)
 	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
 }
 
@@ -292,7 +304,7 @@ func multiply(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	// if L {fmt.Println("multiply", "out.c", out.c)}
 	out.q = a.q + b.q
 	// if L {fmt.Println("multiply", "out.q", out.q)}
-	return normalize(out, out, precision, false, L)
+	return normalize(copy(out), out, precision, false, L)
 }
 
 // 1 / a
@@ -314,7 +326,7 @@ func inverse(a, out *decimal, precision int64, L bool) (*decimal) {
 	if L {fmt.Println("inverse", "out.q", out.q)}
 	if L {fmt.Println("inverse", "out", out, String(out))}
 	
-	norm := normalize(out, out, precision, false, L)
+	norm := normalize(copy(out), out, precision, false, L)
 	if L {fmt.Println("inverse", "norm", norm, String(norm))}
 	return norm
 	
@@ -333,7 +345,7 @@ func iszero(a *decimal) (bool) {
 // a / b
 func divide(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	inverse(b, out, precision, L)
-	multiply(a, out, out, precision, L)
+	multiply(a, copy(out), out, precision, L)
 	return out
 }
 
@@ -366,30 +378,30 @@ func exp_df(a, out *decimal, taylor_precision uint, precision int64, L bool) (*d
 	for i := uint(0) ; i < taylor_precision ; i++ {
 		if L {fmt.Println("i", i)}
 
-		if L {fmt.Println("a", String(a))}
-		if L {fmt.Println("a_power", String(&a_power))}
-		multiply(&a_power, a, &a_power, precision, false) // a^i
-		if L {fmt.Println("a_power", String(&a_power))}
+		if L {fmt.Println("a", String(a), a)}
+		if L {fmt.Println("a_power", String(&a_power), a_power)}
+		multiply(copy(&a_power), a, &a_power, precision, false) // a^i
+		if L {fmt.Println("a_power", String(&a_power), a_power)}
 
-		if L {fmt.Println("ONE", String(&ONE))}
-		if L {fmt.Println("factorial_next", String(&factorial_next))}
-		add(&factorial_next, &ONE, &factorial_next, precision, false) // i + 1
-		if L {fmt.Println("factorial_next", String(&factorial_next))}
+		if L {fmt.Println("ONE", String(&ONE), ONE)}
+		if L {fmt.Println("factorial_next", String(&factorial_next) ,factorial_next)}
+		add(copy(&factorial_next), &ONE, &factorial_next, precision, false) // i + 1
+		if L {fmt.Println("factorial_next", String(&factorial_next), factorial_next)}
 		
-		if L {fmt.Println("factorial", String(&factorial))}
-		multiply(&factorial, &factorial_next, &factorial, precision, false) // i!
-		if L {fmt.Println("factorial", String(&factorial))}
+		if L {fmt.Println("factorial", String(&factorial), factorial)}
+		multiply(copy(&factorial), &factorial_next, &factorial, precision, false) // i!
+		if L {fmt.Println("factorial", String(&factorial), factorial)}
 		
-		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
-		inverse(&factorial, &factorial_inv, precision, true) // 1 / i!
-		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
+		if L {fmt.Println("factorial_inv", String(&factorial_inv), factorial_inv)}
+		inverse(&factorial, &factorial_inv, precision, false) // 1 / i!
+		if L {fmt.Println("factorial_inv", String(&factorial_inv), factorial_inv)}
 
-		multiply(&a_power, &factorial_inv, &factorial_inv, precision, false) // store in factorial_inv as not needed anymore
-		if L {fmt.Println("factorial_inv", String(&factorial_inv))}
+		multiply(&a_power, copy(&factorial_inv), &factorial_inv, precision, false) // store in factorial_inv as not needed anymore
+		if L {fmt.Println("factorial_inv", String(&factorial_inv), factorial_inv)}
 
-		if L {fmt.Println("out", String(out))}
-		add(out, &factorial_inv, out, precision, false)
-		if L {fmt.Println("out", String(out))}
+		if L {fmt.Println("out", String(out), out)}
+		add(copy(out), &factorial_inv, out, precision, false)
+		if L {fmt.Println("out", String(out), out)}
 	}
 
 	if L {fmt.Println("out", String(out))}
@@ -471,7 +483,7 @@ func normalize(a, out *decimal, precision int64, rounded bool, L bool) (*decimal
 			ten_power.Mul(ten_power, TEN_BIGINT) // 10^(p+1)
 		}
 	}
-	// runtime.Breakpoint()
+
 	ten_power.Div(ten_power, TEN_BIGINT) // 10^p
 	out.c.Div(&a.c, ten_power) // out.c = a.c / 10^p
 	out.c.Abs(&out.c) // out.c = abs(out.c)
