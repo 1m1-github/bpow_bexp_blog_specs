@@ -20,10 +20,15 @@ import (
 	// "bpow/int"
 )
 
+var ZERO_BIGINT = big.NewInt(0)
+var ONE_BIGINT = big.NewInt(1)
+// var ONE_DECIMAL = decimal{false, *ONE_BIGINT, 0}
+
 // nomenclature
 // n negative
 // c coefficient
 // q exponent
+// params called out are changed in func
 
 // s = n ?? 1 : 0
 // (-1)^s * c
@@ -70,38 +75,34 @@ func main() {
 	// zero := int{false, 0}
 	L := false
 
-	one := decimal{true, *big.NewInt(1), 0}
-	two := add(&one, &one, L)
-	four := add(&two, &two, L)
-	six := add(&four, &two, L)
-	fmt.Println(one, two, four, six)
+	out := decimal{false, *ZERO_BIGINT, 0}
 
 	a := decimal{true, *big.NewInt(75), -2} // -0.75
 	b := decimal{false, *big.NewInt(25), -3} // 0.025
-	c := add(&a, &b, L) // -0.75 + 0.025 = -0.725
+	c := add(&a, &b, &out, L) // -0.75 + 0.025 = -0.725
 	fmt.Println(a, b, c)
 
 	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	c = negate(&a, L) // 0.75
+	c = negate(&a, &out, L) // 0.75
 	fmt.Println(a, c)
 
 	a = decimal{true, *big.NewInt(75), -2} // -0.75
 	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = subtract(&a, &b, L) // -0.75 - 0.025 = -0.775
+	c = subtract(&a, &b, &out, L) // -0.75 - 0.025 = -0.775
 	fmt.Println(a, b, c)
 
 	a = decimal{true, *big.NewInt(75), -2} // -0.75
 	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = multiply(&a, &b, L) // -0.75 * 0.025 = -0.018750000000000003
+	c = multiply(&a, &b, &out, L) // -0.75 * 0.025 = -0.018750000000000003
 	fmt.Println(a, b, c)
 
 	a = decimal{true, *big.NewInt(75), -2} // -0.75
-	c = inverse(&a, 5, L) // -4/3
+	c = inverse(&a, &out, 5, L) // -4/3
 	fmt.Println(a, c)
 
 	a = decimal{true, *big.NewInt(75), -2} // -0.75
 	b = decimal{false, *big.NewInt(25), -3} // 0.025
-	c = divide(&a, &b, 5, L) // -0.75 / 0.025 = -0.018750000000000003
+	c = divide(&a, &b, &out, 5, L) // -0.75 / 0.025 = -0.018750000000000003
 	fmt.Println(a, b, c)
 }
 
@@ -118,8 +119,8 @@ func main() {
 // 	return add_int(a, &bn)
 // }
 
-// a + b
-func add(a, b *decimal, L bool) (decimal) {
+// c = a + b
+func add(a, b, out *decimal, L bool) (*decimal) {
 	if L {fmt.Println("add, a, b", a, b)}
 
 	// cx = (-1)^x.s * x.c * 10^max(x.q - y.q, 0)
@@ -187,44 +188,83 @@ func add(a, b *decimal, L bool) (decimal) {
 	// todo
 	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
 
-	return decimal{n, *c.Abs(&c), q}
+	out.n = n
+	out.c = *c.Abs(&c)
+	out.q = q
+	return out
 }
 
 // -a
-func negate(a *decimal, L bool) (decimal) {
-	return decimal{!a.n, a.c, a.q}
+func negate(a, out *decimal, L bool) (*decimal) {
+	out.n = !a.n
+	out.c = a.c
+	out.q = a.q
+	return out
 }
 
 // a - b
-func subtract(a, b *decimal, L bool) (decimal) {
-	bn := negate(b, L)
-	return add(a, &bn, L)
+func subtract(a, b, out *decimal, L bool) (*decimal) {
+	negate(b, out, L)
+	add(a, out, out, L)
+	return out
 }
 
 // a * b
-func multiply(a, b *decimal, L bool) (decimal) {
-	n := !(a.n && b.n)
-	var c big.Int
-	c.Mul(&a.c, &b.c)
-	return decimal{n, c, a.q + b.q}
+func multiply(a, b, out *decimal, L bool) (*decimal) {
+	out.n = !(a.n && b.n)
+	out.c.Mul(&a.c, &b.c)
+	out.q = a.q + b.q
+	return out
 }
 
 // 1 / a
-func inverse(a *decimal, precision int64, L bool) (decimal) {
+func inverse(a, out *decimal, precision int64, L bool) (*decimal) {
+	out.n = a.n
+
 	ten_power := big.NewInt(10)
 	ten_power.Exp(ten_power, big.NewInt(-a.q + precision), big.NewInt(0))
-	var c big.Int
-	c.Div(ten_power, &a.c)
-	q := -precision
-	return decimal{a.n, c, q}
-
+	out.c.Div(ten_power, &a.c)
+	
+	out.q = -precision
+	
+	return out
+	
 	// c = round(BigInt(10)^(-x.q + DIGITS) / x.c) # the decimal point of 1/x.c is shifted by -x.q so that the integer part of the result is correct and then it is shifted further by DIGITS to also cover some digits from the fractional part.
     // q = -DIGITS # we only need to remember that there are these digits after the decimal point
     // normalize(Decimal(x.s, c, q))
 }
 
+
+// utils
+func iszero(a *decimal) (bool) {
+	return a.c.Cmp(ZERO_BIGINT) == 0
+}
+// utils
+
 // a / b
-func divide(a, b *decimal, precision int64, L bool) (decimal) {
-	bi := inverse(b, precision, L)
-	return multiply(a, &bi, L)
+func divide(a, b, out *decimal, precision int64, L bool) (*decimal) {
+	inverse(b, out, precision, L)
+	multiply(a, out, out, L)
+	return out
+}
+
+// e^a
+// df decimal float
+func exp_df(a, out *decimal, precision int64, L bool) (*decimal) {
+
+	if iszero(a) {
+		out.n = false
+		out.c = *ONE_BIGINT // possible problem
+		out.q = 0
+		return out
+	}
+
+	// a_power := decimal{false, *big.NewInt(1), 0}
+
+	// for i := int64(0) ; i < precision ; i++ {
+	// 	a_power = multiply(&a_power, &a_power, L)
+
+	// }
+
+	return &decimal{false, *big.NewInt(0), 0}
 }
