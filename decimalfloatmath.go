@@ -138,12 +138,15 @@ func main() {
 	// round(&a, &out, precision, true, true)
 	// fmt.Println("a, String(&a), out, String(&out)", a, String(&a), out, String(&out))
 
-	a = decimal{false, *big.NewInt(1), 0} // 1
-	taylor_precision := uint(20)
-	precision := int64(20)
-	exp_df(&a, &out, taylor_precision, precision, false)
-	// fmt.Println(a, out)
-	fmt.Println(String(&a), String(&out))		
+	// for m := 1 ; m <= 11 ; m++ {
+		m := 90
+		a = decimal{false, *big.NewInt(1), 0} // 1
+		taylor_precision := uint(m)
+		precision := int64(100)
+		exp_df(&a, &out, taylor_precision, precision, true)
+		// fmt.Println(a, out)
+		fmt.Println(m, String(&a), String(&out))		
+	// }
 }
 
 // func add_int(a, b *int) (int) { // a + b
@@ -207,7 +210,7 @@ func copy(a *decimal) (*decimal) {
 
 // c = a + b
 func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
-	if L {fmt.Println("add, a, b", a, b)}
+	if L {fmt.Println("add", "a", "b", a, String(a), b, String(b))}
 
 	// cx = (-1)^x.s * x.c * 10^max(x.q - y.q, 0)
 	// cy = (-1)^y.s * y.c * 10^max(y.q - x.q, 0)
@@ -216,33 +219,37 @@ func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	// bq := b.q
 	// aqmbq := sub_int(&aq, &bq)
 	aqmbq := a.q - b.q
-	if L {fmt.Println("aqmbq", aqmbq)}
-
+	if L {fmt.Println("add", "aqmbq", aqmbq)}
+	
+	aqmbq_abs := aqmbq
+	if aqmbq_abs < 0 {
+		aqmbq_abs = -aqmbq_abs
+	}
 	// ten_power := 10^aqmbq.c
 	ten_power := big.NewInt(10)
-	ten_power.Exp(ten_power, big.NewInt(aqmbq), big.NewInt(0))
+	ten_power.Exp(ten_power, big.NewInt(aqmbq_abs), big.NewInt(0))
 	// ten_power :=  big.Int(10)  10^aqmbq
-	if L {fmt.Println("ten_power", ten_power)}
+	if L {fmt.Println("add", "ten_power", ten_power, ten_power.String())}
 
 	ca := a.c
 	if a.n {
 		ca.Neg(&ca)
 	}
-	if L {fmt.Println("ca", ca)}
+	if L {fmt.Println("add", "ca", ca, ca.String())}
 
 	cb := b.c
 	if b.n {
 		cb.Neg(&cb)
 	}
-	if L {fmt.Println("cb", cb)}
+	if L {fmt.Println("add", "cb", cb, cb.String())}
 
 	if 0 < aqmbq {
 		ca.Mul(&ca, ten_power)
 	} else if aqmbq < 0 {
 		cb.Mul(&cb, ten_power)
 	}
-	if L {fmt.Println("ca", ca)}
-	if L {fmt.Println("cb", cb)}
+	if L {fmt.Println("add", "ca", ca, ca.String())}
+	if L {fmt.Println("add", "cb", cb, cb.String())}
 	// cx = (-1)^x.s * x.c * 10^max(x.q - y.q, 0)
 	// cy = (-1)^y.s * y.c * 10^max(y.q - x.q, 0)
 	
@@ -253,13 +260,13 @@ func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	case 1: n = a.n
 	default: n = b.n
 	}
-	if L {fmt.Println("n", n)}
+	if L {fmt.Println("add", "n", n)}
 	// s = (abs(cx) > abs(cy)) ? x.s : y.s
 
 	// c = BigInt(cx) + BigInt(cy)
 	var c big.Int
 	c.Add(&ca, &cb)
-	if L {fmt.Println("c", c)}
+	if L {fmt.Println("add", "c", c, c.String())}
 	// c = BigInt(cx) + BigInt(cy)
 	
 	// min(x.q, y.q)
@@ -267,7 +274,7 @@ func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	if (b.q < a.q) {
 		q = b.q
 	}
-	if L {fmt.Println("q", q)}
+	if L {fmt.Println("add", "q", q)}
 	// min(x.q, y.q)
 
 	out.n = n
@@ -275,7 +282,10 @@ func add(a, b, out *decimal, precision int64, L bool) (*decimal) {
 	out.q = q
 
 	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
-	return normalize(copy(out), out, precision, false, L)
+	if L {fmt.Println("add", "out", out, String(out))}
+	normalize(copy(out), out, precision, false, L)
+	if L {fmt.Println("add", "out", out, String(out))}
+	return out
 	// normalize(Decimal(s, abs(c), min(x.q, y.q)))
 }
 
@@ -400,7 +410,7 @@ func exp_df(a, out *decimal, taylor_precision uint, precision int64, L bool) (*d
 		if L {fmt.Println("factorial_inv", String(&factorial_inv), factorial_inv)}
 
 		if L {fmt.Println("out", String(out), out)}
-		add(copy(out), &factorial_inv, out, precision, false)
+		add(copy(out), &factorial_inv, out, precision, true)
 		if L {fmt.Println("out", String(out), out)}
 	}
 
@@ -447,7 +457,7 @@ func round(a, out *decimal, precision int64, normal bool, L bool) (*decimal) {
 		return out
 	}
 
-	return normalize(out, out, precision, true, L)
+	return normalize(copy(out), out, precision, true, L)
 }
 
 
@@ -497,5 +507,5 @@ func normalize(a, out *decimal, precision int64, rounded bool, L bool) (*decimal
 		return out
 	}
 
-	return round(out, out, precision, true, L)
+	return round(copy(out), out, precision, true, L)
 }
