@@ -101,5 +101,6 @@ short description of the algorithm:
 - should users provide output width as a param? using the same width param for inputs and outputs does not really make sense as the output will always have a larger error vs the input ~ if a user requires 5 decimal output precision, than the input should be more precise
 
 ## streams of dev
-https://www.youtube.com/watch?v=Lwqmu2p-bsQ
-https://www.youtube.com/watch?v=G-TF9VgGBjg
+https://www.youtube.com/Lwqmu2p-bsQ
+https://www.youtube.com/G-TF9VgGBjg
+https://youtu.be/IhHr-aUaFi0
