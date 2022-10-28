@@ -36,7 +36,7 @@ var TEN_BIGINT = big.NewInt(10)
 // s = n ?? 1 : 0
 // (-1)^s * c
 // type int struct {
-// 	n nool
+// 	n bool
 // 	c uint
 // }
 
