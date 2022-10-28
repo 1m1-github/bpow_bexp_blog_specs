@@ -140,10 +140,10 @@ func main() {
 
 	// for m := 1 ; m <= 11 ; m++ {
 		m := 90
-		a = decimal{false, *big.NewInt(1), 0} // 1
+		a = decimal{true, *big.NewInt(1), 0} // 1
 		taylor_precision := uint(m)
 		precision := int64(100)
-		exp_df(&a, &out, taylor_precision, precision, true)
+		exp_df(&a, &out, taylor_precision, precision, false)
 		// fmt.Println(a, out)
 		fmt.Println(m, String(&a), String(&out))		
 	// }
@@ -410,7 +410,7 @@ func exp_df(a, out *decimal, taylor_precision uint, precision int64, L bool) (*d
 		if L {fmt.Println("factorial_inv", String(&factorial_inv), factorial_inv)}
 
 		if L {fmt.Println("out", String(out), out)}
-		add(copy(out), &factorial_inv, out, precision, true)
+		add(copy(out), &factorial_inv, out, precision, false)
 		if L {fmt.Println("out", String(out), out)}
 	}
 
