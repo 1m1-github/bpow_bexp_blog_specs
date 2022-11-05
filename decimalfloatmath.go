@@ -1,8 +1,5 @@
 // https://github.com/JuliaMath/Decimals.jl
 
-// this package shadows the type int
-// that is ok as this pkg only uses uint and big.Int from go
-
 // Decimal(s, c, q) = (-1)^s * c * 10^q
 // Decimal(0, 1, 1) = (-1)^0 * 1 * 10^1 = 10
 // Decimal(0, 10, -1) = 10
