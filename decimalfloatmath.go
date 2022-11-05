@@ -30,6 +30,8 @@ var TEN_BIGINT = big.NewInt(10)
 // q exponent
 // params called out are changed in func
 
+// this package shadows the type int (if we define the below struct)
+// that is ok as this pkg only uses uint and big.Int from go (if we define the below struct)
 // s = n ?? 1 : 0
 // (-1)^s * c
 // type int struct {
