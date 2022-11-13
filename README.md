@@ -138,5 +138,8 @@ short description of the algorithm:
 
 $$ log10(x) = \frac{log2(x)}{log2(10)} $$
 
+## PR
+https://github.com/algorandfoundation/specs/pull/79
+
 ## streams of dev
 https://youtu.be/Lwqmu2p-bsQ
